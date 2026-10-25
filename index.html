@@ -176,7 +176,12 @@ function handleMotion(event) {
     drawChart();
     const now = Date.now();
     if (now - lastLogAt > 10000) {
-      logMessage('บันทึกการเปลี่ยนแปลงการเคลื่อนไหวจากเซนเซอร์');
+      const levelText = smoothedLevel < 0.6
+      ? 'มีการเคลื่อนไหวต่ำ'
+      : smoothedLevel < 1.5
+      ? 'มีการเคลื่อนไหวปานกลาง'
+      : 'มีการเคลื่อนไหวสูง';
+      logMessage(levelText);
       lastLogAt = now;
     }
   }
