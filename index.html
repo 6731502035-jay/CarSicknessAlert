@@ -19,7 +19,7 @@ nav{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}button{border:0;border-rad
 <body>
 <main class="app">
 <header><h1>🚗 Car Sickness Alert</h1><p>ต้นแบบทดลองอ่านการเคลื่อนไหวจากเซนเซอร์มือถือ · โครงงาน IoT</p></header>
-<div class="notice"><strong>ข้อควรรู้:</strong> เว็บนี้อ่านข้อมูลการเคลื่อนไหวจากมือถือที่รองรับเท่านั้น ค่าที่แสดงไม่สามารถวินิจฉัยหรือทำนายอาการเมารถได้ ทดลองโดยค่อย ๆ เอียงมือถือขณะนั่งอยู่กับที่เท่านั้น ห้ามทดลองขณะขับรถหรือเขย่าเครื่องแรง ๆ</div>
+<div class="notice"><strong>ข้อควรรู้:</strong> เว็บนี้อ่านข้อมูลการเคลื่อนไหวจากการขยับของมือถือเท่านั้น ค่าที่แสดงไม่สามารถวินิจฉัยหรือทำนายอาการเมารถได้</div>
 <nav aria-label="เมนูหลัก">
 <button class="active" data-screen="home">หน้าหลัก</button><button data-screen="graph">กราฟการเคลื่อนไหว</button><button data-screen="alerts">บันทึกสถานะ</button>
 </nav>
@@ -50,10 +50,20 @@ nav{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}button{border:0;border-rad
     <h2>เริ่มมีอาการเมารถ?</h2>
     <p>หากเริ่มคลื่นไส้ เวียนหัว หรือรู้สึกไม่สบาย กดเพื่อดูวิธีรับมือเบื้องต้น</p>
     <button class="primary" id="symptomBtn">ฉันเริ่มมีอาการเมารถ</button>
-    <div id="symptomAdvice" class="hidden" style="margin-top:14px"><h3>วิธีรับมือเมื่อเริ่มไม่สบาย</h3>
-    <ol><li>หยุดอ่านหนังสือหรือมองหน้าจอ</li><li>มองไปยังถนนด้านหน้าหรือจุดที่มั่นคงไกลออกไป</li><li>พยายามอยู่ในตำแหน่งที่อากาศถ่ายเท</li><li>บอกผู้ร่วมเดินทางว่ากำลังไม่สบาย และขอให้จอดพักในจุดปลอดภัยเมื่อทำได้</li></ol>
-    <p>หากอาการรุนแรงหรือผิดปกติ ให้ขอความช่วยเหลือทางการแพทย์</p><button class="secondary" id="symptomDoneBtn">ปิดคำแนะนำ</button></div>
-  </div>
+
+    <div id="symptomAdvice" class="hidden" style="margin-top:14px">
+        <h3>วิธีรับมือเบื้องต้น</h3>
+        <ol>
+            <li>หลีกเลี่ยงการมองสิ่งของใกล้ตัวหรือก้มหน้า เพื่อลดความขัดแย้งระหว่างสัญญาณจากสายตาและระบบการทรงตัวในหูชั้นใน</li>
+            <li>ปิดตาหรือหลับพักสายตา</li>
+            <li>ลดกระจกรับลมภายนอกหรือเปิดช่องแอร์ให้ลมเย็นเป่าเข้าหาหน้าและตัว สามารถใช้ยาดมหรือน้ำมันหอมระเหยกลิ่นเปปเปอร์มินต์หรือยูคาลิปตัสเพื่อลดอาการมึนเมาได้</li>
+            <li>จิบน้ำเปล่า หรืออมลูกอม/เคี้ยวหมากฝรั่ง</li>
+            <li>ลองกดจุดบริเวณข้อมือด้านใน ห่างจากรอยพับข้อมือประมาณ 3 นิ้วมือ อยู่กึ่งกลางระหว่างเอ็นทั้งสอง แล้วนวดค้างไว้ 2–3 นาที</li>
+            <li>หากอาการรุนแรงหรือผิดปกติ ให้ขอความช่วยเหลือทางการแพทย์ โทร. <a href="tel:1669">1669</a></li>
+        </ol>
+
+        <button class="secondary" id="symptomDoneBtn">ปิดคำแนะนำ</button>
+    </div>
 </div>
 </section>
 <section class="screen" id="graph"><div class="card"><h2>กราฟการเคลื่อนไหว</h2><p class="muted">กราฟแสดงค่าการเปลี่ยนแปลงที่บันทึกได้ระหว่างเปิดเซนเซอร์ ไม่ใช่การทำนายอาการเมารถ</p><canvas class="chart" id="chart" width="900" height="300" aria-label="กราฟค่าการเคลื่อนไหว"></canvas><div class="actions"><button class="secondary" id="clearGraphBtn">ล้างกราฟ</button></div></div></section>
