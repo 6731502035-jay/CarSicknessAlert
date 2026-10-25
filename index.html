@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Car Sickness Alert</title>
+<style>
+  :root { --navy:#183b63; --blue:#3278b7; --pale:#eef5fc; --ink:#243449; --muted:#6d7c8d; --line:#dce5ef; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:Tahoma, Arial, sans-serif; color:var(--ink); background:#f4f7fb; }
+  .app { max-width:980px; margin:24px auto; padding:16px; }
+  header { background:linear-gradient(135deg,#183b63,#3278b7); color:white; padding:24px; border-radius:20px; }
+  header h1 { margin:0 0 7px; font-size:clamp(24px,4vw,34px); }
+  header p { margin:0; opacity:.9; }
+  .notice { margin:14px 0; padding:11px 14px; border-radius:12px; background:#fff4d9; color:#77551a; font-size:13px; line-height:1.5; }
+  nav { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0; }
+  nav button, button { border:0; border-radius:10px; padding:11px 15px; cursor:pointer; font-weight:700; font-size:14px; }
+  nav button { background:white; color:var(--navy); border:1px solid var(--line); }
+  nav button.active { background:var(--navy); color:white; }
+  .primary { background:var(--blue); color:white; }
+  .secondary { background:#e8eef5; color:var(--navy); }
+  .danger { background:#fff0ef; color:#9e3530; }
+  .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+  .card { background:white; border:1px solid var(--line); border-radius:16px; padding:18px; box-shadow:0 5px 16px #183b630a; }
+  .card h2,.card h3 { margin:0 0 12px; color:var(--navy); }
+  .muted { color:var(--muted); font-size:13px; }
+  .risk { text-align:center; padding:22px 12px; border-radius:14px; background:#e5f6eb; }
+  .risk .level { font-size:30px; font-weight:800; color:#207447; }
+  .risk .score { color:var(--muted); margin-top:5px; }
+  .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-top:12px; }
+  .stat { background:var(--pale); padding:12px; border-radius:12px; text-align:center; }
+  .stat strong { display:block; font-size:20px; color:var(--navy); margin-bottom:4px; }
+  .actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .status { display:inline-block; padding:5px 9px; border-radius:99px; font-size:12px; background:#e5f6eb; color:#207447; }
+  .hidden { display:none; }
+  .screen { display:none; }
+  .screen.active { display:block; }
+  .chart { width:100%; height:220px; display:block; background:#fbfdff; border:1px solid var(--line); border-radius:12px; }
+  .alert-item { border-left:4px solid #e4b23d; background:#fff9e9; padding:12px; border-radius:8px; margin:10px 0; line-height:1.5; }
+  label { display:block; font-weight:700; margin:14px 0 7px; }
+  input[type="range"] { width:100%; }
+  input[type="checkbox"] { transform:scale(1.15); margin-right:7px; }
+  .small { font-size:12px; line-height:1.6; color:var(--muted); }
+  footer { text-align:center; margin:18px 0 4px; color:var(--muted); font-size:12px; }
+  @media (max-width:650px) { .grid { grid-template-columns:1fr; } .app { margin:0 auto; padding:12px; } header { padding:20px; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>🚗 Car Sickness Alert</h1>
+    <p>เมารถ รู้ก่อนอาการหนัก · ต้นแบบแอปจำลองสำหรับโครงงาน IoT</p>
+  </header>
+  <div class="notice"><strong>หมายเหตุ:</strong> นี่คือข้อมูลจำลองสำหรับสาธิตเท่านั้น แอปนี้ยังไม่ได้เชื่อมต่อเซนเซอร์หรือวัดความเสี่ยงเมารถจริง</div>
+
+  <nav aria-label="เมนูหลัก">
+    <button class="active" data-screen="home">หน้าหลัก</button>
+    <button data-screen="graph">กราฟการเคลื่อนไหว</button>
+    <button data-screen="alerts">การแจ้งเตือน</button>
+    <button data-screen="settings">ตั้งค่า</button>
+  </nav>
+
+  <section class="screen active" id="home">
+    <div class="grid">
+      <div class="card">
+        <h2>สถานะการเดินทาง</h2>
+        <span class="status" id="tripStatus">ยังไม่ได้เริ่มเดินทาง</span>
+        <div class="risk" id="riskBox" style="margin-top:14px">
+          <div class="muted">ระดับจากข้อมูลการเคลื่อนไหวจำลอง</div>
+          <div class="level" id="riskLevel">ต่ำ</div>
+          <div class="score">คะแนนจำลอง: <strong id="riskScore">12</strong>/100</div>
+        </div>
+        <div class="actions">
+          <button class="primary" id="startBtn">▶ เริ่มจำลองการเดินทาง</button>
+          <button class="secondary" id="stepBtn">จำลองเหตุการณ์ถัดไป</button>
+          <button class="danger" id="stopBtn">■ หยุด</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>ข้อมูลตัวอย่าง</h2>
+        <div class="stats">
+          <div class="stat"><strong id="sideValue">0.12</strong><span class="muted">แรงด้านข้าง</span></div>
+          <div class="stat"><strong id="turnValue">1</strong><span class="muted">การเลี้ยว</span></div>
+          <div class="stat"><strong id="shakeValue">0.18</strong><span class="muted">การสั่น</span></div>
+        </div>
+        <p class="small">ค่าตัวเลขนี้สร้างขึ้นเพื่อทดลองหน้าจอ ไม่ได้มาจากรถหรือเซนเซอร์จริง</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h3>คำแนะนำทั่วไป</h3>
+      <p id="advice">พร้อมเริ่มจำลองการเดินทาง เมื่อมีข้อมูลตัวอย่าง ระบบจะแสดงสถานะให้ดู</p>
+    </div>
+    
+    <div class="card" style="margin-top:14px">
+      <h3>เริ่มมีอาการเมารถ?</h3>
+      <p>หากเริ่มคลื่นไส้ เวียนหัว หรือรู้สึกไม่สบาย กดปุ่มด้านล่างเพื่อดูวิธีรับมือ</p>
+      <button class="primary" id="symptomBtn">
+        ฉันเริ่มมีอาการเมารถ
+      </button>
+      <div id="symptomAdvice" class="hidden" style="margin-top:14px">
+        <h3>วิธีรับมือเมื่อไม่มียา</h3>
+        <ol>
+          <li>หยุดอ่านหนังสือหรือมองหน้าจอ</li>
+          <li>มองไปยังถนนด้านหน้าหรือจุดที่มั่นคงไกลออกไป</li>
+          <li>หายใจตามปกติ พยายามอยู่ในตำแหน่งที่อากาศถ่ายเท</li>
+          <li>บอกผู้ร่วมเดินทางว่ากำลังไม่สบาย และขอให้คนขับจอดพักในจุดปลอดภัยเมื่อทำได้</li>
+        </ol>
+        <p>หากอาการรุนแรงหรือผิดปกติ ให้ขอความช่วยเหลือทางการแพทย์</p>
+        <button class="secondary" id="symptomDoneBtn">
+          ปิดคำแนะนำ
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="graph">
+    <div class="card">
+      <h2>กราฟการเคลื่อนไหว</h2>
+      <p class="muted">คะแนนการเคลื่อนไหวจำลองตามลำดับเหตุการณ์ (0–100)</p>
+      <canvas class="chart" id="chart" width="900" height="300"></canvas>
+      <div class="actions"><button class="primary" id="graphStepBtn">เพิ่มข้อมูลจำลอง</button><button class="secondary" id="clearBtn">ล้างกราฟ</button></div>
+    </div>
+  </section>
+
+  <section class="screen" id="alerts">
+    <div class="card">
+      <h2>ประวัติการแจ้งเตือน</h2>
+      <p class="muted">รายการแจ้งเตือนจากสถานการณ์จำลอง</p>
+      <div id="alertList"><p class="muted">ยังไม่มีการแจ้งเตือน ลองเริ่มจำลองการเดินทางได้จากหน้าหลัก</p></div>
+    </div>
+  </section>
+
+  <section class="screen" id="settings">
+    <div class="card">
+      <h2>ตั้งค่า</h2>
+      <label for="threshold">เกณฑ์แจ้งเตือน: <span id="thresholdLabel">60</span>/100</label>
+      <input id="threshold" type="range" min="30" max="90" step="5" value="60">
+      <label><input id="notifications" type="checkbox" checked> เปิดการแจ้งเตือนในต้นแบบ</label>
+      <p class="small">การปรับเกณฑ์มีผลต่อข้อมูลจำลองในหน้าแอปเท่านั้น ไม่ใช่เกณฑ์ทางการแพทย์</p>
+      <button class="primary" id="saveSettings">บันทึกการตั้งค่า</button>
+      <p id="settingsSaved" class="muted"></p>
+    </div>
+  </section>
+  <footer>Car Sickness Alert · Prototype only · ไม่มีการเชื่อมต่อฮาร์ดแวร์จริง</footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let score = 12, running = false, eventIndex = 0, history = [12], alerts = [];
+let threshold = 60;
+const scenarios = [
+  {score:18,side:"0.18",turn:1,shake:"0.22",label:"ต่ำ",advice:"การเคลื่อนไหวจำลองยังอยู่ในระดับต่ำ พักสายตาจากหน้าจอเป็นระยะ"},
+  {score:36,side:"0.34",turn:2,shake:"0.39",label:"ต่ำ",advice:"เริ่มมีการเคลื่อนไหวเพิ่มขึ้น ลองมองไปยังจุดที่มั่นคงภายนอกรถเมื่อทำได้อย่างปลอดภัย"},
+  {score:57,side:"0.61",turn:4,shake:"0.55",label:"ปานกลาง",advice:"พบการเคลื่อนไหวจำลองเพิ่มขึ้น หากเริ่มไม่สบาย ให้บอกผู้ร่วมเดินทางและพักเมื่อปลอดภัย"},
+  {score:76,side:"0.82",turn:6,shake:"0.77",label:"สูง",advice:"แจ้งเตือนจากข้อมูลจำลอง: การเคลื่อนไหวสูงขึ้น หากรู้สึกไม่สบายให้บอกผู้ขับหรือผู้ร่วมเดินทาง และหยุดพักในที่ปลอดภัยเมื่อทำได้"}
+];
+function setScreen(name) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.toggle("active", s.id === name));
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("active", b.dataset.screen === name));
+  if (name === "graph") drawChart();
+}
+document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => setScreen(b.dataset.screen)));
+function updateView() {
+  $("riskScore").textContent = score;
+  const level = score >= threshold ? "สูง" : score >= 45 ? "ปานกลาง" : "ต่ำ";
+  $("riskLevel").textContent = level;
+  const colors = level === "สูง" ? ["#ffebe9","#a52c27"] : level === "ปานกลาง" ? ["#fff4d8","#8a6215"] : ["#e5f6eb","#207447"];
+  $("riskBox").style.background = colors[0]; $("riskLevel").style.color = colors[1];
+  $("sideValue").textContent = scenarios[Math.min(eventIndex,3)].side;
+  $("turnValue").textContent = scenarios[Math.min(eventIndex,3)].turn;
+  $("shakeValue").textContent = scenarios[Math.min(eventIndex,3)].shake;
+  $("advice").textContent = scenarios[Math.min(eventIndex,3)].advice;
+  $("tripStatus").textContent = running ? "กำลังจำลองการเดินทาง" : "หยุดการจำลอง";
+  drawChart();
+}
+function addAlert(message) {
+  const time = new Date().toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"});
+  alerts.unshift({time,message});
+  $("alertList").innerHTML = alerts.map(a => `<div class="alert-item"><strong>${a.time}</strong><br>${a.message}</div>`).join("");
+}
+function nextEvent() {
+  eventIndex = Math.min(eventIndex + 1, scenarios.length - 1);
+  score = scenarios[eventIndex].score;
+  history.push(score);
+  updateView();
+  if ($("notifications").checked && score >= threshold) {
+    addAlert("ความเสี่ยงจากการเคลื่อนไหวจำลองอยู่ในระดับสูง โปรดสังเกตอาการของตนเองและพักเมื่อปลอดภัย");
+  } else if ($("notifications").checked && score >= 45 && (history.length === 3)) {
+    addAlert("พบการเคลื่อนไหวจำลองเพิ่มขึ้น: ระดับปานกลาง");
+  }
+}
+$("startBtn").addEventListener("click", () => { running = true; eventIndex = 0; score = scenarios[0].score; history = [12,score]; alerts = []; $("alertList").innerHTML = ""; updateView(); addAlert("เริ่มการเดินทางจำลองแล้ว"); });
+$("stepBtn").addEventListener("click", nextEvent);
+$("graphStepBtn").addEventListener("click", nextEvent);
+$("stopBtn").addEventListener("click", () => { running = false; updateView(); addAlert("หยุดการจำลองการเดินทางแล้ว"); });
+$("clearBtn").addEventListener("click", () => { history = [score]; drawChart(); });
+$("threshold").addEventListener("input", e => { threshold = Number(e.target.value); $("thresholdLabel").textContent = threshold; updateView(); });
+$("saveSettings").addEventListener("click", () => { $("settingsSaved").textContent = "บันทึกการตั้งค่าในต้นแบบแล้ว"; updateView(); });
+function drawChart() {
+  const canvas = $("chart"); if (!canvas) return;
+  const ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
+  ctx.clearRect(0,0,w,h); ctx.fillStyle="#fbfdff"; ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle="#e2eaf3"; ctx.lineWidth=1;
+  for (let i=0;i<=4;i++) { const y=20+i*(h-50)/4; ctx.beginPath();ctx.moveTo(45,y);ctx.lineTo(w-15,y);ctx.stroke();ctx.fillStyle="#718096";ctx.font="14px Arial";ctx.fillText(String(100-i*25),8,y+5); }
+  if (history.length < 1) return;
+  const points = history.map((v,i)=>({x:50+(history.length===1?0:i*(w-80)/(history.length-1)),y:20+(100-v)*(h-50)/100}));
+  ctx.strokeStyle="#3278b7";ctx.lineWidth=4;ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();
+  points.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,5,0,Math.PI*2);ctx.fillStyle="#3278b7";ctx.fill();});
+}
+
+$("symptomBtn").addEventListener("click", () => {
+  $("symptomAdvice").classList.remove("hidden");
+  addAlert("ผู้ใช้แจ้งว่าเริ่มมีอาการเมารถ");
+});
+
+$("symptomDoneBtn").addEventListener("click", () => {
+  $("symptomAdvice").classList.add("hidden");
+});
+updateView();
+</script>
+</body>
+</html>
