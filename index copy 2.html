@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Car Comfort Stabilizer - Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b1220;--panel:#131c2e;--panel2:#1a2540;--line:#2a3856;--text:#e6edf7;--mute:#8fa1c0;--ok:#22c55e;--warn:#eab308;--bad:#ef4444;--blue:#38bdf8;--acc:#818cf8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Sarabun',system-ui,-apple-system,'Segoe UI',sans-serif;line-height:1.45}
+header{padding:14px 20px;border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:20px}
+header p{margin:2px 0 0;color:var(--mute);font-size:14px}
+main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;padding:16px 20px;max-width:1280px;margin:auto}
+@media(max-width:900px){main{grid-template-columns:1fr}}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.card h2{margin:0 0 8px;font-size:14px;color:var(--mute);font-weight:600}
+canvas{display:block;width:100%;border-radius:10px;background:#0e1626}
+.row{display:flex;gap:16px;flex-wrap:wrap}
+.row>div{flex:1;min-width:240px}
+.ctrl{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center}
+.ctrl label{font-size:14px;color:var(--mute);margin-right:6px}
+.chips{display:inline-flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:6px 12px;border-radius:999px;cursor:pointer;font:inherit;font-size:14px}
+.chip.active{background:var(--acc);border-color:var(--acc);color:#fff}
+.chip:hover{filter:brightness(1.15)}
+input[type=range]{accent-color:var(--acc);vertical-align:middle}
+.small{font-size:13px;color:var(--mute)}
+/* phone */
+.phone{width:100%;max-width:320px;margin:0 auto;border:8px solid #05080f;border-radius:34px;background:#0f1729;padding:14px 14px 18px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.pstatus{display:flex;justify-content:space-between;font-size:12px;color:var(--mute)}
+.ptitle{font-weight:700;font-size:17px;margin:8px 0 2px}
+.badge{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;background:#0e3a22;color:#86efac}
+.big{display:block;margin:14px auto 10px;width:150px;height:150px;border-radius:50%;border:none;cursor:pointer;font:inherit;font-weight:700;font-size:16px;color:#fff;background:radial-gradient(circle at 30% 25%,#6366f1,#3730a3);box-shadow:0 8px 24px rgba(99,102,241,.45);transition:.15s;line-height:1.25;padding:10px}
+.big:active{transform:scale(.95)}
+.big.on{background:radial-gradient(circle at 30% 25%,#22d3ee,#0369a1);box-shadow:0 0 0 6px rgba(56,189,248,.25),0 8px 30px rgba(56,189,248,.55)}
+.big small{display:block;font-weight:400;font-size:12px;opacity:.9;margin-top:4px}
+.lv{display:flex;gap:6px;justify-content:center;margin-bottom:14px}
+.lv .chip{flex:1;text-align:center;padding:6px 4px;font-size:13px;border-radius:10px}
+.motion{background:#0b1322;border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.motion .cap{font-size:12px;color:var(--mute)}
+.state{font-size:22px;font-weight:700;margin:2px 0 8px;transition:color .3s}
+.gauge{position:relative;height:14px;border-radius:8px;background:linear-gradient(90deg,#22c55e 0%,#84cc16 25%,#eab308 50%,#f97316 75%,#ef4444 100%);opacity:.95}
+.gauge .mask{position:absolute;top:0;right:0;bottom:0;background:#0b1322;opacity:.78;border-radius:0 8px 8px 0;transition:width .25s}
+.gauge .mark{position:absolute;top:-4px;width:3px;height:22px;background:#fff;border-radius:2px;transition:left .25s;box-shadow:0 0 0 1px rgba(0,0,0,.5)}
+.gscale{display:flex;justify-content:space-between;font-size:11px;color:var(--mute);margin-top:3px}
+.legendm{font-size:12px;color:var(--mute);margin-top:6px}
+.legendm b{display:inline-block;width:3px;height:11px;background:#fff;vertical-align:-1px;margin-right:5px;border-radius:2px}
+.sub{margin-top:10px}
+.sub .lab{display:flex;justify-content:space-between;font-size:13px}
+.sub .bar{height:8px;border-radius:5px;background:#16213a;margin-top:3px;overflow:hidden}
+.sub .bar i{display:block;height:100%;width:0;border-radius:5px;transition:width .25s,background .25s}
+.effect{margin-top:10px;font-size:13px;text-align:center;padding:6px 8px;border-radius:10px;background:#12233a;color:#bae6fd}
+.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:6px 12px;border-radius:10px;cursor:pointer;font:inherit;font-size:13px}
+.btn:hover{filter:brightness(1.2)}
+#log{height:190px;overflow:auto;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;background:#070b14;border-radius:10px;padding:8px 10px;border:1px solid var(--line)}
+#log div{white-space:pre-wrap}
+.s-app{color:#a5b4fc}.s-cloud{color:#7dd3fc}.s-esp{color:#86efac}.s-act{color:#fcd34d}.s-sen{color:#94a3b8}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--mute);margin-top:6px;flex-wrap:wrap}
+.legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:5px;border-radius:2px}
+footer{max-width:1280px;margin:0 auto;padding:0 20px 24px;color:var(--mute);font-size:12.5px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🚗 Car Comfort Stabilizer — DEMO</h1>
+  <p>ผู้โดยสารสามารถแตะหน้าจอเพื่อปรับให้รถนิ่งขึ้น โดยรถยังวิ่งด้วยความเร็วเท่าเดิม</p>
+</header>
+
+<main>
+  <div class="col">
+    <div class="card">
+      <h2>มุมมองข้าง: รถบนถนน (เส้นประ = ถ้าไม่มีระบบ, รถสีส้ม = รถที่เปิดระบบ)</h2>
+      <canvas id="cSide" style="height:300px"></canvas>
+    </div>
+
+    <div class="card">
+      <h2>ตั้งค่าสถานการณ์ (ส่วนของผู้ทดสอบ)</h2>
+      <div class="ctrl">
+        <div><label>ถนน</label>
+          <span class="chips" id="roadChips">
+            <button class="chip" data-road="smooth">เรียบ</button>
+            <button class="chip active" data-road="bumpy">ขรุขระ</button>
+            <button class="chip" data-road="hilly">เนินสูง-ต่ำ</button>
+            <button class="chip" data-road="winding">ทางโค้ง</button>
+            <button class="chip" data-road="mountain">ภูเขา (เนิน+โค้ง+ขรุขระ)</button>
+          </span>
+        </div>
+        <div><label>ความเร็วรถ</label>
+          <input type="range" id="spd" min="20" max="150" value="60" step="5">
+          <b id="spdTxt">60</b> km/h
+        </div>
+        <div>
+          <button class="btn" id="btnReset">↺ เริ่มทริปใหม่</button>
+          <button class="btn" id="btnPause">⏸ หยุด</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="card">
+        <h2>มุมมองหลัง: ถนนข้างหน้า + รถโยกข้างตอนเข้าโค้ง (โยกขยาย ×3, โค้งขยายให้เห็นชัด)</h2>
+        <canvas id="cRear" style="height:240px"></canvas>
+        <div class="small" id="rollTxt" style="margin-top:6px"></div>
+      </div>
+      <div class="card" style="flex:1.6">
+        <h2>แรงสั่นที่ผู้โดยสารรู้สึก (แนวขึ้น-ลง, 8 วินาทีล่าสุด)</h2>
+        <canvas id="cChart" style="height:240px"></canvas>
+        <div class="legend"><span><i style="background:#94a3b8"></i>ไม่มีระบบ</span><span><i style="background:#38bdf8"></i>เปิดระบบ (ตอนนี้)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="phone">
+      <div class="pstatus"><span>9:41</span><span>5G ▮▮▮</span></div>
+      <div class="ptitle">Car Comfort</div>
+      <span class="badge">● เชื่อมต่อรถแล้ว</span>
+
+      <button class="big" id="btnBig">แตะเพื่อให้<br>รถนิ่งขึ้น<small>ปิดอยู่</small></button>
+      <div class="lv" id="lvChips">
+        <button class="chip" data-lv="1">นุ่ม</button>
+        <button class="chip active" data-lv="2">สมดุล</button>
+        <button class="chip" data-lv="3">นิ่งสุด</button>
+      </div>
+
+      <div class="motion">
+        <div class="cap">การเคลื่อนไหวของรถตอนนี้</div>
+        <div class="state" id="stateTxt">😌 นิ่งมาก</div>
+        <div class="gauge"><div class="mask" id="gMask"></div><div class="mark" id="gMark"></div></div>
+        <div class="gscale"><span>นิ่ง</span><span>โยกเยก</span><span>สั่นแรง</span></div>
+        <div class="legendm" id="legendM" style="display:none"><b></b>ตำแหน่งถ้าไม่เปิดระบบ</div>
+
+        <div class="sub">
+          <div class="lab"><span>กระแทกขึ้น-ลง</span><span id="vTxt">นิ่ง</span></div>
+          <div class="bar"><i id="vBar"></i></div>
+        </div>
+        <div class="sub">
+          <div class="lab"><span>โยกซ้าย-ขวา</span><span id="rTxt">นิ่ง</span></div>
+          <div class="bar"><i id="rBar"></i></div>
+        </div>
+        <div class="effect" id="effect">แตะปุ่มด้านบนเพื่อให้รถนิ่งขึ้น</div>
+      </div>
+      <div class="small" style="text-align:center;margin-top:8px">ความเร็วรถ <b id="spdPhone">60</b> km/h (ไม่เปลี่ยนเมื่อเปิดระบบ)</div>
+    </div>
+
+    <div class="card">
+      <h2>Serial / Cloud log (จำลองการสื่อสารของระบบ IoT)</h2>
+      <div id="log"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  เดโม่จำลองเพื่อประกอบการส่งงาน: โมเดลฟิสิกส์เป็นแบบง่าย (ช่วงล่างสปริง-แดมเปอร์ + ระบบหน่วงแบบ skyhook + ชดเชยการลอย-จมบางส่วนตอนผ่านเนิน) ระดับการเคลื่อนไหวเป็นค่าสาธิตจากการจำลอง ไม่ใช่ข้อมูลจากรถจริง และเนิน/โค้งถูกย่อสเกลเพื่อให้เห็นชัดบนจอ
+</footer>
+
+<script>
+// ==PHYSICS-START==
+function hash(n){ const x=Math.sin(n*127.1+311.7)*43758.5453; return x-Math.floor(x); }
+
+const ROAD={
+  smooth:  {rough:0.25, bump:0,   curve:0, hill:0},
+  bumpy:   {rough:1.0,  bump:1,   curve:0, hill:0},
+  hilly:   {rough:0.35, bump:0.15,curve:0, hill:1},
+  winding: {rough:0.8,  bump:0.6, curve:1, hill:0},
+  mountain:{rough:0.8,  bump:0.6, curve:1, hill:1}
+};
+const ROADNAME={smooth:'เรียบ',bumpy:'ขรุขระ',hilly:'เนินสูง-ต่ำ',winding:'ทางโค้ง',mountain:'ภูเขา'};
+
+// ความขรุขระ/หลุมบ่อ (เมตร) ที่ระยะ x
+function roadH(x,r){
+  let h=r.rough*(0.012*Math.sin(x*0.9)+0.008*Math.sin(x*2.3+1.3)+0.004*Math.sin(x*5.1+0.4));
+  if(r.bump>0){
+    const seg=14, i=Math.floor(x/seg);
+    for(let k=i-1;k<=i+1;k++){
+      if(hash(k)<0.7*r.bump){
+        const c=k*seg+3+hash(k+50)*8, w=0.7, a=0.03+0.035*hash(k+99);
+        const d=(x-c)/w; h+=a*Math.exp(-d*d);
+      }
+    }
+  }
+  return h;
+}
+// เนินสูง-ต่ำ (ย่อสเกลแนวนอนเพื่อให้เห็นบนจอ) : ความสูง, ความชัน, ความโค้งของเนิน
+const K1=2*Math.PI/46, K2=2*Math.PI/19;
+function hillH(x,r){ return r.hill*(2.0*Math.sin(K1*x)+0.9*Math.sin(K2*x+1.1)); }
+function hillS(x,r){ return r.hill*(2.0*K1*Math.cos(K1*x)+0.9*K2*Math.cos(K2*x+1.1)); }
+function hillD2(x,r){ return -r.hill*(2.0*K1*K1*Math.sin(K1*x)+0.9*K2*K2*Math.sin(K2*x+1.1)); }
+const HILL_G=1/110;   // แปลงเนินที่ย่อสเกลบนจอ -> แรงที่ผู้โดยสารรู้สึกเมื่อผ่านเนินจริง
+// ความโค้งถนน (1/เมตร)
+function curv(x,r){ return r.curve*(0.009*Math.sin(x*0.04)+0.004*Math.sin(x*0.11+1)); }
+
+const A_=1.25,B_=1.25,R2=1.0,K=28,C0=1.5,XS=-0.3;
+
+class Car{
+  constructor(){this.reset();}
+  reset(){
+    this.z=0;this.vz=0;this.th=0;this.vth=0;this.ph=0;this.vph=0;
+    this.az=0;this.azs=0;this.aph=0;
+    this.msqz=0;this.msqr=0;this.rms=0;
+    this.hd=0;this.vhd=0;
+  }
+  // lvl = ระดับระบบ 0..3, ah = ความเร่งจากเนิน (ที่ผ่านการชดเชยแล้ว)
+  step(dt,rf,drf,rr,drr,alat,lvl,ah){
+    const zf=this.z+A_*this.th, zr=this.z-B_*this.th;
+    const vf=this.vz+A_*this.vth, vr=this.vz-B_*this.vth;
+    const Ff=-K*(zf-rf)-C0*(vf-drf);
+    const Fr=-K*(zr-rr)-C0*(vr-drr);
+    // ระบบที่เราทำ: เพิ่มแรงหน่วงเทียบกับ "ตัวถังรถ" (skyhook) ทั้งขึ้นลงและก้มเงย
+    const F  =Ff+Fr-6.0*lvl*this.vz;
+    const ath=(A_*Ff-B_*Fr)/R2-5.0*lvl*this.vth;
+    const az =F-ah;                       // ความเร่งสัมพัทธ์กับถนน (ผ่านเนิน = ถนนเร่งขึ้น/ลง)
+    this.vz+=az*dt;  this.z+=this.vz*dt;
+    this.vth+=ath*dt; this.th+=this.vth*dt;
+    // การโยกข้าง (roll) ตอนเข้าโค้ง: ระบบเพิ่มความแข็ง anti-roll
+    const w2=64*(1+0.7*lvl), cph=2.4+4.5*lvl;
+    const aph=-w2*this.ph-cph*this.vph+1.14*alat;
+    this.vph+=aph*dt; this.ph+=this.vph*dt;
+    // สิ่งที่เซนเซอร์ MPU6050 ที่เบาะผู้โดยสารจะวัดได้ (แรงที่เบาะดันตัวคน)
+    this.az=F; this.azs=F+XS*ath; this.aph=aph;
+    // ค่าเฉลี่ยกำลังสองของแรงสั่นช่วง ~2.5 วิ แยกแนวขึ้น-ลง กับแนวโยกข้าง
+    const k=Math.min(1,dt/2.5);
+    this.msqz+=(this.azs*this.azs-this.msqz)*k;
+    this.msqr+=(Math.pow(8*this.ph,2)-this.msqr)*k;
+    this.rms=Math.sqrt(this.msqz+this.msqr);
+    // หัวผู้โดยสารแกว่งตามแรงเฉื่อย (ไว้วาดภาพ)
+    const wh=9, zh=0.35;
+    const ahd=-wh*wh*this.hd-2*zh*wh*this.vhd-this.azs;
+    this.vhd+=ahd*dt; this.hd+=this.vhd*dt;
+  }
+}
+
+const HN=240; // 8 วินาที @30Hz
+class Sim{
+  constructor(){this.A=new Car();this.B=new Car();this.reset('bumpy',60);}
+  reset(road,speed){
+    this.x=0;this.t=0;this.rf=0;this.rr=0;this.lvl=0;this.hist=[];this.acc=0;this.alat=0;
+    this.A.reset();this.B.reset();
+    const st={road:road,speed:speed||60,cmd:0};
+    for(let i=0;i<720;i++) this.step(1/240,st);   // อุ่นเครื่อง 3 วิ ให้ระบบนิ่งก่อน
+    this.t=0;this.hist=[];
+    for(const c of [this.A,this.B]){c.msqz=0;c.msqr=0;c.rms=0;}
+  }
+  step(dt,st){
+    if(!(dt>0)) return;                             // กัน dt = 0 / ติดลบ (สาเหตุของ NaN เดิม)
+    const r=ROAD[st.road], v=st.speed/3.6;
+    this.x+=v*dt; this.t+=dt;
+    const hf=roadH(this.x+A_,r), hr=roadH(this.x-B_,r);
+    const al=1-Math.exp(-dt/0.04);                 // ยางช่วยกรองความสูงถนน
+    const rf2=this.rf+(hf-this.rf)*al, rr2=this.rr+(hr-this.rr)*al;
+    const drf=(rf2-this.rf)/dt, drr=(rr2-this.rr)/dt;
+    this.rf=rf2; this.rr=rr2;
+    this.lvl+=(st.cmd-this.lvl)*(1-Math.exp(-dt/0.4)); // ตัวปรับช่วงล่างตอบสนองช้า ~0.4 วิ
+    const raw=curv(this.x,r)*v*v;                  // แรงเหวี่ยง = ความโค้ง x v^2
+    const alat=7*Math.tanh(raw/7);                 // จำกัดไม่ให้เกินแรงเกาะถนนจริง
+    this.alat=alat;
+    const ahRaw=HILL_G*v*v*hillD2(this.x,r);       // ยอดเนิน = รู้สึกเบา, ท้องเนิน = รู้สึกหนัก
+    this.A.step(dt,rf2,drf,rr2,drr,alat,0,ahRaw);                        // รถที่ไม่มีระบบ
+    this.B.step(dt,rf2,drf,rr2,drr,alat,this.lvl,ahRaw/(1+0.3*this.lvl)); // รถที่เปิดระบบ
+    if(!isFinite(this.A.z+this.B.z+this.A.ph+this.B.ph)){ // กันค่าเพี้ยนแบบอัตโนมัติ
+      this.A.reset();this.B.reset();this.rf=0;this.rr=0;
+    }
+    this.acc+=dt;
+    if(this.acc>=1/30){
+      this.acc=0; this.hist.push([this.A.azs,this.B.azs]);
+      if(this.hist.length>HN) this.hist.shift();
+    }
+  }
+}
+// ==PHYSICS-END==
+
+// ---------- UI ----------
+const state={road:'bumpy',speed:60,cmd:0,running:true};
+const ui={on:false,level:2};
+let sim=new Sim();
+
+const $=id=>document.getElementById(id);
+const views={};
+function fit(id,h){
+  const c=$(id), dpr=window.devicePixelRatio||1, w=c.clientWidth;
+  c.width=Math.round(w*dpr); c.height=Math.round(h*dpr);
+  const g=c.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0);
+  views[id]={g:g,w:w,h:h};
+}
+function fitAll(){ fit('cSide',300); fit('cRear',240); fit('cChart',240); }
+window.addEventListener('resize',fitAll);
+
+// ---------- log ----------
+function log(src,msg){
+  const cls={APP:'s-app',CLOUD:'s-cloud',ESP32:'s-esp',ACT:'s-act',MPU:'s-sen'}[src]||'';
+  const d=document.createElement('div'); d.className=cls;
+  const t=sim.t.toFixed(1).padStart(5,' ');
+  d.textContent='['+t+'s] '+src.padEnd(5,' ')+' '+msg;
+  const L=$('log'); L.appendChild(d);
+  while(L.children.length>60) L.removeChild(L.firstChild);
+  L.scrollTop=L.scrollHeight;
+}
+function sendCommand(level){
+  const pct=Math.round(level/3*100);
+  log('APP','POST /command {level:'+level+'}');
+  setTimeout(()=>log('CLOUD','Firebase /car/cmd = '+level),250);
+  setTimeout(()=>log('ESP32','รับคำสั่ง level='+level+' → ตั้ง PWM '+pct+'%'),500);
+  setTimeout(()=>{
+    state.cmd=level;
+    log('ACT','ตัวปรับช่วงล่างเริ่มทำงาน ความแข็งเป้าหมาย '+pct+'% (ใช้เวลา ~0.4 วิ)');
+  },750);
+}
+
+// ---------- controls ----------
+function refreshPhone(){
+  const b=$('btnBig');
+  b.classList.toggle('on',ui.on);
+  b.innerHTML=ui.on?('ระบบทำงาน<br>ระดับ '+ui.level+'<small>แตะอีกครั้งเพื่อปิด</small>'):'แตะเพื่อให้<br>รถนิ่งขึ้น<small>ปิดอยู่</small>';
+  document.querySelectorAll('#lvChips .chip').forEach(c=>c.classList.toggle('active',ui.on&&+c.dataset.lv===ui.level));
+}
+$('btnBig').onclick=()=>{ ui.on=!ui.on; refreshPhone(); sendCommand(ui.on?ui.level:0); };
+document.querySelectorAll('#lvChips .chip').forEach(c=>c.onclick=()=>{
+  ui.level=+c.dataset.lv; ui.on=true; refreshPhone(); sendCommand(ui.level);
+});
+document.querySelectorAll('#roadChips .chip').forEach(c=>c.onclick=()=>{
+  state.road=c.dataset.road;
+  document.querySelectorAll('#roadChips .chip').forEach(x=>x.classList.toggle('active',x===c));
+});
+$('spd').oninput=e=>{ state.speed=+e.target.value; $('spdTxt').textContent=state.speed; $('spdPhone').textContent=state.speed; };
+$('btnReset').onclick=()=>{ sim.reset(state.road,state.speed); $('log').innerHTML=''; };
+$('btnPause').onclick=()=>{ state.running=!state.running; $('btnPause').textContent=state.running?'⏸ หยุด':'▶ เล่นต่อ'; };
+
+// ---------- drawing ----------
+const PPMH=45, PPMV=450, HV=18;
+function poly(g,pts){ g.beginPath(); pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1])); g.closePath(); }
+
+function drawCarBody(g,car,carX,baseY,hillY,hillAng,ghost,lvl){
+  const ang=Math.atan2(car.th*PPMV,PPMH)+hillAng;
+  const py=baseY-46-car.z*PPMV-hillY;
+  g.save(); g.translate(carX,py); g.rotate(-ang);
+  const body=[[-88,-14],[-82,-22],[82,-22],[90,-12],[92,12],[-90,14]];
+  const cabin=[[-48,-22],[-32,-48],[38,-48],[58,-22]];
+  if(ghost){
+    g.setLineDash([5,4]); g.strokeStyle='rgba(226,232,240,.55)'; g.lineWidth=1.5;
+    poly(g,body); g.stroke(); poly(g,cabin); g.stroke(); g.setLineDash([]);
+  }else{
+    if(lvl>0.3){ g.shadowColor='rgba(56,189,248,'+Math.min(1,lvl/2)+')'; g.shadowBlur=14; }
+    g.fillStyle='#e8643f'; poly(g,body); g.fill(); poly(g,cabin); g.fill();
+    g.shadowBlur=0;
+    g.fillStyle='#bfe3f7'; poly(g,[[-40,-24],[-28,-44],[34,-44],[50,-24]]); g.fill();
+    // ผู้โดยสาร
+    const hx=-6, hy=-34+Math.max(-9,Math.min(9,car.hd*PPMV*1.2));
+    g.fillStyle='#1e293b'; g.beginPath(); g.arc(hx,hy,7,0,6.283); g.fill();
+    g.fillStyle='#fcd9b6'; g.beginPath(); g.arc(hx,hy,6,0,6.283); g.fill();
+    g.fillStyle='#1e293b'; g.fillRect(hx-3,hy-1,1.6,1.6); g.fillRect(hx+2,hy-1,1.6,1.6);
+    g.fillStyle='#fde68a'; g.fillRect(84,-8,8,6); // ไฟหน้า
+  }
+  g.restore();
+  return {ang:ang,py:py};
+}
+
+function drawSide(){
+  const {g,w,h}=views.cSide; g.clearRect(0,0,w,h);
+  const baseY=h*0.74, carX=w*0.42;
+  const r=ROAD[state.road];
+  const sky=g.createLinearGradient(0,0,0,h); sky.addColorStop(0,'#1d3557'); sky.addColorStop(1,'#7fb7de');
+  g.fillStyle=sky; g.fillRect(0,0,w,h);
+  // เนินเขาไกลๆ (เลื่อนช้ากว่าถนน)
+  g.fillStyle='#2b5a52'; g.beginPath(); g.moveTo(0,h);
+  for(let sx=0;sx<=w;sx+=8){ const wx=sx+sim.x*8; g.lineTo(sx,baseY-70-20*Math.sin(wx*0.011)-10*Math.sin(wx*0.029)); }
+  g.lineTo(w,h); g.closePath(); g.fill();
+  // ผิวถนน = เนินสูง-ต่ำ + ความขรุขระ
+  const gy=sx=>{ const wx=sim.x+(sx-carX)/PPMH; return baseY-roadH(wx,r)*PPMV-hillH(wx,r)*HV; };
+  g.fillStyle='#3a3f4b'; g.beginPath(); g.moveTo(0,h);
+  for(let sx=0;sx<=w;sx+=3) g.lineTo(sx,gy(sx));
+  g.lineTo(w,h); g.closePath(); g.fill();
+  g.strokeStyle='#6b7280'; g.lineWidth=2; g.beginPath();
+  for(let sx=0;sx<=w;sx+=3){ const y=gy(sx); sx?g.lineTo(sx,y):g.moveTo(sx,y); }
+  g.stroke();
+  // ขีดแบ่งเลน
+  g.fillStyle='#e5e7eb';
+  const first=Math.floor(sim.x-carX/PPMH);
+  for(let m=first;m<=first+w/PPMH+2;m++){
+    if(m%4) continue;
+    const sx=carX+(m-sim.x)*PPMH;
+    g.fillRect(sx,gy(sx)+6,16,3);
+  }
+
+  const lvl=sim.lvl;
+  const hillY=hillH(sim.x,r)*HV;
+  const hillAng=Math.atan2((hillH(sim.x+A_,r)-hillH(sim.x-A_,r))*HV,2*A_*PPMH);
+  drawCarBody(g,sim.A,carX,baseY,hillY,hillAng,true,0);                  // รถเงาประ = ไม่มีระบบ
+  const info=drawCarBody(g,sim.B,carX,baseY,hillY,hillAng,false,lvl);   // รถจริง
+  // แดมเปอร์ + ล้อ
+  const ca=Math.cos(info.ang), sa=Math.sin(info.ang);
+  [[A_,sim.rf],[-B_,sim.rr]].forEach(([lx,rh])=>{
+    const wx=carX+lx*PPMH, wy=baseY-rh*PPMV-hillH(sim.x+lx,r)*HV-16;
+    const bx=carX+(lx*PPMH)*ca+16*sa, by=info.py-(lx*PPMH)*sa+16*ca;
+    g.strokeStyle=lvl>0.2?'#38bdf8':'#94a3b8'; g.lineWidth=2+lvl*1.6;
+    g.beginPath(); g.moveTo(wx,wy); g.lineTo(bx,by); g.stroke();
+    g.fillStyle='#0b0f17'; g.beginPath(); g.arc(wx,wy,16,0,6.283); g.fill();
+    g.fillStyle='#9aa4b2'; g.beginPath(); g.arc(wx,wy,6,0,6.283); g.fill();
+  });
+  // HUD
+  g.fillStyle='rgba(0,0,0,.35)'; g.fillRect(10,10,250,44);
+  g.fillStyle='#fff'; g.font='13px Sarabun, sans-serif';
+  g.fillText('ความเร็ว '+state.speed+' km/h   ถนน: '+ROADNAME[state.road],18,29);
+  g.fillText('ระบบ: '+(lvl>0.15?'ทำงาน (ระดับ '+ui.level+')':'ปิด'),18,47);
+}
+
+function drawRear(){
+  const {g,w,h}=views.cRear; g.clearRect(0,0,w,h);
+  const cx=w/2, gy=h-12, hz=h*0.30, rr=ROAD[state.road];
+  // ท้องฟ้า + พื้นข้างทาง
+  const sk=g.createLinearGradient(0,0,0,hz); sk.addColorStop(0,'#16294a'); sk.addColorStop(1,'#5f8fb8');
+  g.fillStyle=sk; g.fillRect(0,0,w,hz);
+  g.fillStyle='#1f3b2f'; g.fillRect(0,hz,w,h-hz);
+  // ถนนมองจากด้านหลัง: ดูความโค้งของถนนข้างหน้า (ย่อ-ขยายให้เห็นชัด)
+  const LOOK=160, DS=2, offs=[0];
+  let psi=0, off=0;
+  for(let d=0; d<LOOK; d+=DS){ psi+=curv(sim.x+d,rr)*DS; off+=psi*DS; offs.push(off); }
+  const half=w*0.42, pxm=half*2/7, EXAG=4, N=70, s0=0.02;
+  const sAt=i=>1-(1-s0)*i/N;
+  const cxAt=(s)=>{ const d=Math.max(0,3/s-3), k=Math.min(offs.length-1,Math.round(d/DS)); return cx-offs[k]*pxm*s*EXAG; };
+  for(let i=0;i<N;i++){
+    const sa=sAt(i), sb=sAt(i+1);
+    const ya=hz+(h-hz)*sa, yb=hz+(h-hz)*sb;
+    const xa=cxAt(sa), xb=cxAt(sb), wa=half*sa, wb=half*sb;
+    const dm=3/((sa+sb)/2)-3, band=Math.floor((sim.x+dm)/8);
+    g.fillStyle=band%2?'#3a3f4b':'#353a46';
+    g.beginPath(); g.moveTo(xa-wa,ya+.8); g.lineTo(xa+wa,ya+.8); g.lineTo(xb+wb,yb); g.lineTo(xb-wb,yb); g.closePath(); g.fill();
+    // ขอบถนน
+    g.fillStyle='#e5e7eb';
+    const ew=Math.max(1,wa*0.03), ew2=Math.max(1,wb*0.03);
+    g.beginPath(); g.moveTo(xa-wa,ya+.8); g.lineTo(xa-wa+ew,ya+.8); g.lineTo(xb-wb+ew2,yb); g.lineTo(xb-wb,yb); g.closePath(); g.fill();
+    g.beginPath(); g.moveTo(xa+wa,ya+.8); g.lineTo(xa+wa-ew,ya+.8); g.lineTo(xb+wb-ew2,yb); g.lineTo(xb+wb,yb); g.closePath(); g.fill();
+    // เส้นกลางถนนแบบประ
+    if(Math.floor((sim.x+dm)/6)%2===0){
+      const cw=Math.max(0.6,wa*0.025), cw2=Math.max(0.6,wb*0.025);
+      g.fillStyle='#fde68a';
+      g.beginPath(); g.moveTo(xa-cw,ya+.8); g.lineTo(xa+cw,ya+.8); g.lineTo(xb+cw2,yb); g.lineTo(xb-cw2,yb); g.closePath(); g.fill();
+    }
+  }
+  // ป้ายบอกลักษณะถนนข้างหน้า
+  const cAhead=curv(sim.x+25,rr);
+  const bend=Math.abs(cAhead)<0.002?'ทางตรง':(cAhead>0?'⬅ โค้งซ้าย':'โค้งขวา ➡');
+  g.fillStyle='rgba(0,0,0,.4)'; g.fillRect(8,8,112,24);
+  g.fillStyle='#fff'; g.font='13px Sarabun, sans-serif'; g.textAlign='left'; g.textBaseline='alphabetic';
+  g.fillText('ถนนข้างหน้า: '+bend,14,25);
+  function rear(car,ghost){
+    const a=car.ph*3;
+    g.save(); g.translate(cx,gy-18); g.rotate(a);
+    if(ghost){
+      g.setLineDash([5,4]); g.strokeStyle='rgba(226,232,240,.6)'; g.lineWidth=1.5;
+      g.strokeRect(-52,-52,104,40); g.strokeRect(-36,-80,72,28); g.setLineDash([]);
+    }else{
+      g.fillStyle='#e8643f'; g.fillRect(-52,-52,104,40);
+      g.fillStyle='#d1522f'; g.fillRect(-36,-80,72,28);
+      g.fillStyle='#bfe3f7'; g.fillRect(-30,-76,60,20);
+      g.fillStyle='#fcd9b6'; g.beginPath(); g.arc(-10+Math.max(-0.1,Math.min(0.1,car.hd))*60,-66,6,0,6.283); g.fill();
+      g.fillStyle='#ef4444'; g.fillRect(-48,-38,12,8); g.fillRect(36,-38,12,8);
+    }
+    g.restore();
+  }
+  rear(sim.A,true); rear(sim.B,false);
+  g.fillStyle='#0b0f17'; g.fillRect(cx-46,gy-30,14,30); g.fillRect(cx+32,gy-30,14,30);
+  $('rollTxt').textContent='องศาโยกจริง: ไม่มีระบบ '+(sim.A.ph*57.3).toFixed(1)+'°  |  เปิดระบบ '+(sim.B.ph*57.3).toFixed(1)+'°  (แรงเหวี่ยง '+sim.alat.toFixed(1)+' m/s²)';
+}
+
+function drawChart(){
+  const {g,w,h}=views.cChart; g.clearRect(0,0,w,h);
+  const pad=30, ymax=5, mid=h/2, ph=h/2-14;
+  g.font='11px Sarabun, sans-serif'; g.textAlign='right'; g.textBaseline='middle';
+  [-4,-2,0,2,4].forEach(v=>{
+    const y=mid-v/ymax*ph; g.strokeStyle=v===0?'#3b4a69':'#1c2740'; g.lineWidth=1;
+    g.beginPath(); g.moveTo(pad,y); g.lineTo(w-6,y); g.stroke();
+    g.fillStyle='#8fa1c0'; g.fillText(v,pad-5,y);
+  });
+  g.save(); g.translate(10,mid); g.rotate(-Math.PI/2); g.textAlign='center'; g.fillText('m/s²',0,0); g.restore();
+  function line(idx,col,wd){
+    g.strokeStyle=col; g.lineWidth=wd; g.beginPath();
+    const off=HN-sim.hist.length;
+    sim.hist.forEach((p,i)=>{
+      const x=pad+((i+off)/(HN-1))*(w-pad-6);
+      const y=mid-Math.max(-ymax,Math.min(ymax,p[idx]))/ymax*ph;
+      i?g.lineTo(x,y):g.moveTo(x,y);
+    });
+    g.stroke();
+  }
+  line(0,'#94a3b8',1.4); line(1,'#38bdf8',2);
+}
+
+// ---------- แอปผู้โดยสาร: แปลงค่าเซนเซอร์เป็นระดับที่เข้าใจง่าย ----------
+const REF=1.5; // ค่าแรงสั่นที่ถือว่า "สั่นแรงสุด" (m/s²)
+const score=ms=>Math.max(0,Math.min(100,100*Math.sqrt(ms)/REF));
+function level(s){
+  if(s<15) return {t:'😌 นิ่งมาก',c:'#22c55e',w:'นิ่ง'};
+  if(s<35) return {t:'🙂 สบาย',c:'#84cc16',w:'เบา'};
+  if(s<60) return {t:'😐 เริ่มโยกเยก',c:'#eab308',w:'พอรู้สึก'};
+  if(s<80) return {t:'😣 สั่นค่อนข้างแรง',c:'#f97316',w:'แรง'};
+  return {t:'🤢 สั่นแรงมาก',c:'#ef4444',w:'แรงมาก'};
+}
+function updateText(){
+  const A=sim.A,B=sim.B;
+  const sB=Math.max(0,Math.min(100,100*B.rms/REF)), sA=Math.max(0,Math.min(100,100*A.rms/REF));
+  const lv=level(sB);
+  const st=$('stateTxt'); st.textContent=lv.t; st.style.color=lv.c;
+  $('gMask').style.width=(100-sB)+'%';
+  const on=sim.lvl>0.15;
+  $('gMark').style.left='calc('+sA+'% - 1px)'; $('gMark').style.display=on?'block':'none';
+  $('legendM').style.display=on?'block':'none';
+  const v=score(B.msqz), r=score(B.msqr);
+  const bar=(id,txt,s)=>{ const l=level(s); $(id).style.width=s+'%'; $(id).style.background=l.c; $(txt).textContent=l.w; };
+  bar('vBar','vTxt',v); bar('rBar','rTxt',r);
+  const e=$('effect');
+  if(!on){ e.textContent='แตะปุ่มด้านบนเพื่อให้รถนิ่งขึ้น'; }
+  else if(A.rms<0.15){ e.textContent='ถนนเรียบอยู่แล้ว ระบบแทบไม่ต้องทำงาน'; }
+  else {
+    const pct=Math.max(0,Math.round((1-B.rms/A.rms)*100));
+    e.textContent='✅ เปิดระบบแล้ว สั่นน้อยลงประมาณ '+pct+'%';
+  }
+}
+
+// ---------- main loop ----------
+let last=performance.now(), uiT=0, telT=0;
+function frame(now){
+  const dt=Math.min(0.05,Math.max(0,(now-last)/1000)); last=now;
+  if(state.running && dt>0){
+    const n=Math.max(1,Math.ceil(dt/(1/240))), h=dt/n;
+    for(let i=0;i<n;i++) sim.step(h,state);
+    uiT+=dt; telT+=dt;
+    if(uiT>0.1){uiT=0; updateText();}
+    if(telT>2.5){
+      telT=0;
+      log('MPU','az='+sim.B.azs.toFixed(2)+' m/s²  roll='+(sim.B.ph*57.3).toFixed(1)+'°  rms='+sim.B.rms.toFixed(2));
+    }
+  }
+  drawSide(); drawRear(); drawChart();
+  requestAnimationFrame(frame);
+}
+fitAll(); refreshPhone(); updateText();
+log('ESP32','boot OK, MPU6050 ready, Wi-Fi connected');
+log('CLOUD','Firebase connected, waiting for command...');
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
